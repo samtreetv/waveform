@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>STEMVIZ XR</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Courier New',monospace}
+
+#cam-feed{
+  position:fixed;inset:0;width:100%;height:100%;
+  object-fit:cover;z-index:0;opacity:0;transition:opacity .7s;
+}
+#cam-feed.on{opacity:1}
+
+/* overlay is declared as dom-overlay root for WebXR */
+#overlay{
+  position:fixed;inset:0;z-index:10;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding:18px 18px 22px;pointer-events:none;
+}
+
+/* ─ top bar ─ */
+.top-bar{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:8px;
+  pointer-events:all;
+}
+.pills{
+  display:flex;border:1px solid rgba(255,255,255,.12);border-radius:2px;
+  overflow:hidden;backdrop-filter:blur(16px);
+}
+.pill{
+  padding:8px 15px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;
+  background:rgba(0,0,0,.55);border:none;color:rgba(255,255,255,.3);
+  font-family:inherit;cursor:pointer;transition:all .15s;
+  border-right:1px solid rgba(255,255,255,.08);
+}
+.pill:last-child{border-right:none}
+.pill.on,.pill:hover{background:rgba(255,255,255,.1);color:#fff}
+.hbtn{
+  padding:8px 15px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.35);
+  font-family:inherit;cursor:pointer;border-radius:2px;transition:all .15s;
+}
+.hbtn:hover,.hbtn.on{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.3)}
+
+/* ─ bottom zone ─ */
+.bottom-zone{
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  pointer-events:all;
+}
+
+/* ─ playback ─ */
+#pb{
+  width:min(380px,74vw);display:flex;flex-direction:column;gap:6px;
+  opacity:0;transition:opacity .4s;
+}
+#pb.on{opacity:1}
+.pbar{width:100%;height:1px;background:rgba(255,255,255,.1);cursor:pointer;position:relative}
+.pbar::before{content:'';position:absolute;inset:-7px 0}
+#pf{height:100%;background:rgba(255,255,255,.5);width:0;transition:width .1s linear}
+.trow{display:flex;justify-content:space-between;font-size:8px;color:rgba(255,255,255,.2);letter-spacing:.1em}
+.ctrls{display:flex;justify-content:center;gap:18px}
+.cbtn{
+  background:none;border:none;color:rgba(255,255,255,.4);font-family:inherit;
+  font-size:9px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;
+  padding:5px;transition:color .15s;
+}
+.cbtn:hover{color:#fff}.cbtn.p{color:rgba(255,255,255,.85)}
+
+/* ─ faders ─ */
+#faders{
+  display:flex;justify-content:center;
+  gap:clamp(22px,5vw,52px);
+  padding:4px 0;
+}
+.fc{display:flex;flex-direction:column;align-items:center;gap:7px;width:42px}
+.fl{font-size:7px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.25);text-align:center}
+.ft{
+  position:relative;height:90px;width:2px;
+  background:rgba(255,255,255,.1);border-radius:1px;cursor:pointer;
+}
+.ff{position:absolute;bottom:0;left:0;right:0;border-radius:1px;transition:height .04s}
+.fh{
+  position:absolute;left:50%;transform:translate(-50%,-50%);
+  width:22px;height:6px;border-radius:1px;background:rgba(255,255,255,.75);
+  cursor:grab;box-shadow:0 0 8px rgba(255,255,255,.25);
+}
+.fh:active{cursor:grabbing}
+.mb{
+  width:32px;height:18px;font-size:7px;letter-spacing:.1em;text-transform:uppercase;
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.14);
+  color:rgba(255,255,255,.35);font-family:inherit;cursor:pointer;border-radius:1px;transition:all .15s;
+}
+.mb.off{background:rgba(255,50,30,.12);border-color:rgba(255,70,40,.35);color:rgba(255,90,55,.75)}
+.mb:hover{color:#fff;border-color:rgba(255,255,255,.3)}
+
+/* ─ landing ─ */
+#land{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(2,2,8,.94);backdrop-filter:blur(24px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+  transition:opacity .5s;
+}
+#land.gone{opacity:0;pointer-events:none}
+.wm{
+  font-size:clamp(42px,11vw,84px);font-weight:700;letter-spacing:-.04em;line-height:1;
+  background:linear-gradient(118deg,#FF4D1C,#4D79FF 35%,#00E5A0 65%,#FFD600);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.wsub{font-size:8px;letter-spacing:.3em;color:rgba(255,255,255,.18);text-transform:uppercase}
+.lbg{display:flex;flex-direction:column;gap:7px;width:min(270px,78vw)}
+.lbtn{
+  padding:13px 18px;display:flex;justify-content:space-between;align-items:center;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);
+  color:rgba(255,255,255,.6);font-family:inherit;font-size:9px;letter-spacing:.15em;
+  text-transform:uppercase;cursor:pointer;transition:all .15s;
+}
+.lbtn:hover{background:rgba(255,255,255,.08);color:#fff;border-color:rgba(255,255,255,.25)}
+.lbtn span{opacity:.35;font-size:15px}
+#btn-ar{
+  padding:11px 28px;border:1px solid rgba(255,255,255,.25);
+  background:rgba(255,255,255,.05);color:rgba(255,255,255,.8);
+  font-family:inherit;font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+  cursor:pointer;transition:all .15s;display:none;
+}
+#btn-ar:hover{background:rgba(255,255,255,.12);color:#fff}
+#fi{display:none}
+</style>
+</head>
+<body>
+
+<video id="cam-feed" autoplay playsinline muted></video>
+
+<div id="overlay">
+  <div class="top-bar">
+    <div class="pills">
+      <button class="pill on" id="bMF">File</button>
+      <button class="pill"    id="bMM">Mic</button>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="hbtn" id="bCam">Camera</button>
+      <button class="hbtn" id="bAR"  style="display:none">◈ AR Mode</button>
+    </div>
+  </div>
+
+  <div class="bottom-zone">
+    <div id="pb">
+      <div class="pbar" id="pt"><div id="pf"></div></div>
+      <div class="trow"><span id="tc">0:00</span><span id="tt">0:00</span></div>
+      <div class="ctrls">
+        <button class="cbtn"   id="bLN">New</button>
+        <button class="cbtn p" id="bPl">▶ Play</button>
+        <button class="cbtn"   id="bMu">Mute</button>
+      </div>
+    </div>
+    <div id="faders"></div>
+  </div>
+</div>
+
+<div id="land">
+  <div class="wm">STEMVIZ</div>
+  <div class="wsub">spatial audio · visual field</div>
+  <div class="lbg">
+    <button class="lbtn" id="bLF">Load audio file <span>◎</span></button>
+    <button class="lbtn" id="bLMic">Live microphone <span>⊙</span></button>
+  </div>
+  <button id="btn-ar">◈ Enter AR Space</button>
+  <input type="file" id="fi" accept="audio/*">
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+//  STEMVIZ v3  ·  WebXR AR  ·  Abstract Spatial Audio Visualizer
+//  — 4 frequency bands → 4 unique abstract color-field objects
+//  — WebXR immersive-ar (Quest / Vision Pro)  +  fallback cam view
+//  — Per-stem volume faders + mute
+// ════════════════════════════════════════════════════════════════
+
+const $ = id => document.getElementById(id);
+const LAND = $('land');
+
+// ── Three.js renderer ──────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, powerPreference:'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.xr.enabled = true;
+renderer.setClearColor(0x000000, 0);
+renderer.domElement.style.cssText = 'position:fixed;inset:0;z-index:1;';
+document.body.insertBefore(renderer.domElement, $('overlay'));
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(80, innerWidth/innerHeight, 0.01, 200);
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+// ── Shared GLSL noise ──────────────────────────────────────────
+const NOISE = `
+float h21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+float sn(vec2 p){
+  vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
+  return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+vec2(1,1)),f.x),f.y);
+}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*sn(p);p*=2.1;a*=.48;}return v;}
+`;
+
+const VERT = `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
+
+// ── DRUMS — pulsing radial burst · no hard edges · warm ember field ──
+const FRAG_DRUMS = NOISE + `
+uniform float uE,uT,uV;varying vec2 vUv;
+void main(){
+  vec2 uv=vUv*2.-1.;
+  float f=fbm(uv*2.2+uT*.17+uE*.35);
+  float g=fbm(uv*4.8+vec2(-uT*.22,uT*.14));
+  float d=length(uv)+(f-.5)*.6*(uE*.9+.25)+(g-.5)*.22;
+  // multiple soft halos, not rings—just gradient bands
+  float h1=exp(-pow(max(0.,d-.3*(1.+uE*.9)),2.)*18.)*.9;
+  float h2=exp(-pow(max(0.,d-.58*(1.+uE*.5)),2.)*9.)*.55;
+  float h3=exp(-pow(max(0.,d-.82),2.)*5.)*.3;
+  float core=exp(-d*d*5.)*(uE*.8+.12);
+  float bright=(h1+h2+h3+core)*uV;
+  vec3 c=mix(vec3(.6,.04,.01),vec3(1.,.3,.03),clamp(bright*1.1,0.,1.));
+  c=mix(c,vec3(1.,.75,.25),clamp(bright*2.2-1.,0.,1.));
+  c=mix(c,vec3(1.,.97,.88),clamp(bright*4.-2.8,0.,1.));
+  gl_FragColor=vec4(c,clamp(bright*.85,0.,1.));
+}`;
+
+// ── BASS — slow heavy amoeba · deep blue morphing field ──
+const FRAG_BASS = NOISE + `
+uniform float uE,uT,uV;varying vec2 vUv;
+void main(){
+  vec2 uv=vUv*2.-1.;
+  uv.y*=.68; // heavier vertical proportion
+  float f =fbm(uv*1.6+uT*.07+uE*.18);
+  float g =fbm(uv*3.2-uT*.11);
+  float f2=fbm(uv*5.5+vec2(uT*.19,-uT*.08));
+  float d=length(uv)+(f-.5)*.72*(uE*.85+.35)+(g-.5)*.28+(f2-.5)*.1;
+  float blob=exp(-d*d*2.8)*(uE*.7+.18);
+  float halo=exp(-d*d*.7)*(uE*.4+.08);
+  float bright=(blob+halo)*uV;
+  float colorF=fbm(uv*2.+uT*.05);
+  vec3 c=mix(vec3(.02,.07,.4),vec3(.08,.38,.88),clamp(colorF*1.4,0.,1.));
+  c=mix(c,vec3(.25,.75,.98),clamp(bright*2.5-1.,0.,1.));
+  c=mix(c,vec3(.85,.97,1.),clamp(bright*5.-3.5,0.,1.));
+  gl_FragColor=vec4(c,clamp(bright*.9,0.,1.));
+}`;
+
+// ── MID — horizontal aurora river · flowing teal light bands ──
+const FRAG_MID = NOISE + `
+uniform float uE,uT,uV;varying vec2 vUv;
+void main(){
+  vec2 uv=vUv*2.-1.;
+  uv.x*=.48; // very wide, shallow
+  float warp=fbm(vec2(uv.x*2.8+uT*.18, uv.y*4.+uT*.28))*(uE*.55+.12);
+  float w2  =fbm(vec2(uv.x*5.5-uT*.22, uv.y*7.-uT*.4))*.1;
+  float dy=abs(uv.y - (warp-.25)*.5 + w2);
+  // multiple aurora layers at different heights
+  float a1=exp(-dy*dy*22.)*(uE*.85+.2);
+  float a2=exp(-pow(abs(uv.y+(warp-.5)*.3),2.)*10.)*(uE*.45+.1);
+  float a3=exp(-pow(abs(uv.y-.15+(w2-.05)),2.)*30.)*(uE*.3);
+  float ex=smoothstep(1.,.55,abs(uv.x));
+  float bright=(a1+a2+a3)*ex*uV;
+  float nf=fbm(vec2(uv.x*3.+uT*.12,uv.y*2.-uT*.2));
+  vec3 c=mix(vec3(0.,.22,.2),vec3(0.,.8,.55),clamp(nf*1.6,0.,1.));
+  c=mix(c,vec3(.4,1.,.78),clamp(bright*2.-1.,0.,1.));
+  c=mix(c,vec3(.9,1.,.96),clamp(bright*4.-2.5,0.,1.));
+  gl_FragColor=vec4(c,clamp(bright,0.,1.));
+}`;
+
+// ── HIGH — dispersing golden nebula · soft vertical shimmer ──
+const FRAG_HIGH = NOISE + `
+uniform float uE,uT,uV;varying vec2 vUv;
+void main(){
+  vec2 uv=vUv*2.-1.;
+  uv.y*=.52; // taller feel
+  float total=0.;
+  // layered noise pockets creating soft scattered glow—no hard shapes
+  for(int i=0;i<6;i++){
+    float fi=float(i);
+    vec2 p=uv*(1.8+fi*.85)+vec2(sin(uT*.05+fi*.9)*(.1+uE*.15), cos(uT*.04+fi*.7)*(.08+uE*.12));
+    float f=fbm(p+uT*(0.03+fi*.01));
+    float pocket=exp(-pow(abs(f-.5)*1.6+length(uv)*.5,2.)*4.)*.22*(uE*.8+.12);
+    total+=pocket;
+  }
+  float core=exp(-length(uv*vec2(.8,1.2))*length(uv*vec2(.8,1.2))*2.8)*(uE*.6+.1);
+  total+=core;
+  total*=uV;
+  float nf=fbm(uv*3.+uT*.06);
+  vec3 c=mix(vec3(.45,.18,.0),vec3(1.,.62,.02),clamp(nf*1.5,0.,1.));
+  c=mix(c,vec3(1.,.9,.3),clamp(total*2.2-1.,0.,1.));
+  c=mix(c,vec3(1.,.98,.88),clamp(total*5.-3.,0.,1.));
+  gl_FragColor=vec4(c,clamp(total*.88,0.,1.));
+}`;
+
+// ── Stem configuration ─────────────────────────────────────────
+// positions are wide apart; in XR they surround the user
+const STEMS = [
+  { name:'DRUMS', hex:'#FF4D1C', frag:FRAG_DRUMS, pos:[-2.8, 0.0, -3.2], sz:[3.6,3.6], flo:20,   fhi:250   },
+  { name:'BASS',  hex:'#4D79FF', frag:FRAG_BASS,  pos:[-0.9,-0.2, -4.0], sz:[3.0,3.8], flo:250,  fhi:500   },
+  { name:'MID',   hex:'#00E5A0', frag:FRAG_MID,   pos:[ 0.9, 0.2, -3.7], sz:[4.8,2.6], flo:500,  fhi:4000  },
+  { name:'HIGH',  hex:'#FFD600', frag:FRAG_HIGH,  pos:[ 2.8, 0.4, -3.2], sz:[3.2,4.2], flo:4000, fhi:20000 },
+];
+
+const stemGroups    = [];
+const stemUniforms  = [];
+const stemVols      = [1,1,1,1];
+const stemMuted     = [false,false,false,false];
+
+STEMS.forEach((s, i) => {
+  const u = { uE:{value:0}, uT:{value:0}, uV:{value:1} };
+  stemUniforms.push(u);
+
+  const mat = new THREE.ShaderMaterial({
+    uniforms: u,
+    vertexShader: VERT,
+    fragmentShader: s.frag,
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+  });
+
+  const group = new THREE.Group();
+
+  // 3 layered planes per stem — varying scale + slight Z offsets for depth
+  const layers = [[1.0,0,0,0],[0.7,0.06,0.05,0.12],[0.45,-0.04,-0.06,0.22]];
+  layers.forEach(([sc,ox,oy,oz]) => {
+    const mesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(s.sz[0]*sc, s.sz[1]*sc),
+      mat
+    );
+    mesh.position.set(ox, oy, oz);
+    group.add(mesh);
+  });
+
+  group.position.set(...s.pos);
+  scene.add(group);
+  stemGroups.push(group);
+});
+
+// ── Audio engine ───────────────────────────────────────────────
+let audioCtx, analyser, gainNode, src, buf, micStream;
+let startT=0, pauseOff=0, isPlaying=false, isMuted=false;
+const FFT_SIZE = 2048;
+const fftBuf   = new Uint8Array(FFT_SIZE / 2);
+const smoothE  = [0,0,0,0];
+
+function boot() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    gainNode  = audioCtx.createGain();
+    gainNode.connect(audioCtx.destination);
+  }
+}
+
+function mkAnalyser(smooth = 0.72) {
+  if (analyser) analyser.disconnect();
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = FFT_SIZE;
+  analyser.smoothingTimeConstant = smooth;
+  analyser.connect(gainNode);
+}
+
+function f2b(f) { return Math.min(Math.round(f / (audioCtx.sampleRate / FFT_SIZE)), fftBuf.length - 1); }
+
+function bandE(lo, hi) {
+  const a = f2b(lo), b = f2b(hi);
+  let s = 0;
+  for (let i = a; i <= b; i++) s += fftBuf[i] / 255;
+  return s / (b - a + 1);
+}
+
+async function loadFile(file) {
+  boot(); killAll();
+  const ab  = await file.arrayBuffer();
+  buf = await audioCtx.decodeAudioData(ab);
+  $('tt').textContent = fmt(buf.duration);
+  $('pb').classList.add('on');
+  LAND.classList.add('gone');
+  doPlay();
+}
+
+function doPlay() {
+  if (!buf) return;
+  if (src) { try { src.stop() } catch(e) {} }
+  mkAnalyser();
+  src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  src.connect(analyser);
+  src.start(0, pauseOff);
+  startT = audioCtx.currentTime - pauseOff;
+  isPlaying = true;
+  $('bPl').textContent = '❙❙ Pause';
+  src.onended = () => { if (isPlaying) { isPlaying=false; pauseOff=0; $('bPl').textContent='▶ Play'; } };
+}
+
+function doPause() {
+  if (!isPlaying) return;
+  pauseOff = audioCtx.currentTime - startT;
+  src.stop(); isPlaying=false; $('bPl').textContent='▶ Play';
+}
+
+async function startMic() {
+  boot(); killAll();
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    mkAnalyser(0.82);
+    audioCtx.createMediaStreamSource(micStream).connect(analyser);
+    isPlaying = true;
+    LAND.classList.add('gone');
+    $('pb').classList.remove('on');
+  } catch(e) { alert('Microphone access was denied.'); }
+}
+
+function killAll() {
+  if (src) { try { src.stop() } catch(e) {} src=null; }
+  if (micStream) { micStream.getTracks().forEach(t=>t.stop()); micStream=null; }
+  isPlaying=false; pauseOff=0;
+}
+
+function tickAudio() {
+  if (!analyser || !isPlaying) return;
+  analyser.getByteFrequencyData(fftBuf);
+  STEMS.forEach((s, i) => {
+    const raw = bandE(s.flo, s.fhi);
+    smoothE[i] += (raw - smoothE[i]) * 0.11;
+  });
+  if (buf && isPlaying) {
+    const el = Math.min(audioCtx.currentTime - startT, buf.duration);
+    $('pf').style.width = (el / buf.duration * 100) + '%';
+    $('tc').textContent = fmt(el);
+  }
+}
+
+// ── Camera passthrough ─────────────────────────────────────────
+const camFeed = $('cam-feed');
+let camStream = null;
+
+async function toggleCam() {
+  if (camStream) {
+    camStream.getTracks().forEach(t => t.stop());
+    camFeed.srcObject = null; camStream = null;
+    camFeed.classList.remove('on'); $('bCam').classList.remove('on');
+    $('bCam').textContent = 'Camera';
+  } else {
+    const constraints = [
+      { video: { facingMode: { ideal: 'environment' } } },
+      { video: true }
+    ];
+    for (const c of constraints) {
+      try {
+        camStream = await navigator.mediaDevices.getUserMedia(c);
+        camFeed.srcObject = camStream;
+        camFeed.classList.add('on');
+        $('bCam').classList.add('on');
+        $('bCam').textContent = 'Cam ✓';
+        break;
+      } catch(e) {}
+    }
+    if (!camStream) alert('Camera unavailable.');
+  }
+}
+
+// ── WebXR ──────────────────────────────────────────────────────
+let xrSession = null;
+
+async function enterXR() {
+  if (!navigator.xr) { alert('WebXR not available in this browser.'); return; }
+  const modes = ['immersive-ar', 'immersive-vr'];
+  for (const mode of modes) {
+    const ok = await navigator.xr.isSessionSupported(mode).catch(() => false);
+    if (!ok) continue;
+    try {
+      xrSession = await navigator.xr.requestSession(mode, {
+        requiredFeatures: ['local'],
+        optionalFeatures: ['dom-overlay', 'local-floor'],
+        domOverlay: { root: $('overlay') },
+      });
+      renderer.xr.setReferenceSpaceType('local');
+      await renderer.xr.setSession(xrSession);
+      xrSession.addEventListener('end', () => { xrSession = null; });
+      LAND.classList.add('gone');
+      return;
+    } catch(e) { console.warn(mode, 'failed:', e); }
+  }
+  alert('XR session could not start. Try on a Quest or Vision Pro browser.');
+}
+
+(async () => {
+  if (!navigator.xr) return;
+  for (const mode of ['immersive-ar', 'immersive-vr']) {
+    if (await navigator.xr.isSessionSupported(mode).catch(() => false)) {
+      $('bAR').style.display    = 'block';
+      $('btn-ar').style.display = 'block';
+      break;
+    }
+  }
+})();
+
+// ── Non-XR pan ─────────────────────────────────────────────────
+let yaw=0, tgtYaw=0;
+let drag=false, dragX0=0, dragYaw0=0;
+
+renderer.domElement.addEventListener('mousedown', e => {
+  drag=true; dragX0=e.clientX; dragYaw0=tgtYaw;
+});
+addEventListener('mousemove', e => {
+  if (drag) tgtYaw = dragYaw0 + (dragX0 - e.clientX) / innerWidth * 2.2;
+});
+addEventListener('mouseup', () => drag=false);
+
+let tX0=0, tYaw0=0;
+renderer.domElement.addEventListener('touchstart', e => {
+  tX0=e.touches[0].clientX; tYaw0=tgtYaw;
+  // iOS gyro unlock
+  if (typeof DeviceOrientationEvent?.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission().then(r => {
+      if (r === 'granted') addEventListener('deviceorientation', gyroHandler);
+    }).catch(() => {});
+  }
+}, { passive:true });
+addEventListener('touchmove', e => {
+  tgtYaw = tYaw0 + (tX0 - e.touches[0].clientX) / innerWidth * 2.2;
+}, { passive:true });
+
+function gyroHandler(e) {
+  if (e.gamma != null) tgtYaw = Math.max(-1.3, Math.min(1.3, (e.gamma / 42) * 0.9));
+}
+addEventListener('deviceorientation', gyroHandler);
+
+addEventListener('keydown', e => {
+  if (e.code === 'Space')       { e.preventDefault(); $('bPl').click(); }
+  if (e.code === 'ArrowLeft')   tgtYaw = Math.max(-1.4, tgtYaw - 0.22);
+  if (e.code === 'ArrowRight')  tgtYaw = Math.min( 1.4, tgtYaw + 0.22);
+  if (e.code === 'KeyR')        tgtYaw = 0;
+});
+
+// ── Render loop ────────────────────────────────────────────────
+let clock = 0;
+
+renderer.setAnimationLoop((timeMs) => {
+  clock = timeMs * 0.001;
+  tickAudio();
+
+  if (!renderer.xr.isPresenting) {
+    yaw += (tgtYaw - yaw) * 0.065;
+    camera.rotation.y = -yaw;
+  }
+
+  STEMS.forEach((s, i) => {
+    const vol = stemMuted[i] ? 0 : stemVols[i];
+    const u   = stemUniforms[i];
+    const e   = smoothE[i];
+
+    u.uE.value = e;
+    u.uT.value = clock;
+    u.uV.value = vol;
+
+    // Gentle breathing scale driven by energy
+    const pulse = 1 + e * 0.4;
+    stemGroups[i].scale.set(pulse, pulse, 1);
+
+    // In non-XR, face camera; in XR the user looks around naturally
+    if (!renderer.xr.isPresenting) {
+      stemGroups[i].quaternion.copy(camera.quaternion);
+    }
+  });
+
+  renderer.render(scene, camera);
+});
+
+// ── Build fader UI ─────────────────────────────────────────────
+const fadersEl = $('faders');
+
+STEMS.forEach((s, i) => {
+  const col   = document.createElement('div');  col.className = 'fc';
+  const lbl   = document.createElement('div');  lbl.className = 'fl';
+  lbl.style.color = s.hex;  lbl.textContent = s.name;
+
+  const track  = document.createElement('div');  track.className = 'ft';
+  const fill   = document.createElement('div');  fill.className = 'ff';
+  fill.style.cssText = `background:${s.hex}88;height:100%`;
+  const handle = document.createElement('div');  handle.className = 'fh';
+  handle.style.cssText = `top:0%;background:${s.hex}`;
+
+  track.appendChild(fill);
+  track.appendChild(handle);
+
+  const mBtn = document.createElement('button');
+  mBtn.className = 'mb';
+  mBtn.textContent = 'ON';
+
+  const setVol = v => {
+    stemVols[i] = Math.max(0, Math.min(1, v));
+    fill.style.height   = (stemVols[i] * 100) + '%';
+    handle.style.top    = ((1 - stemVols[i]) * 100) + '%';
+  };
+
+  // Drag fader handle
+  let fDrag=false, fY0=0, fV0=1;
+  const startFDrag = (clientY) => { fDrag=true; fY0=clientY; fV0=stemVols[i]; };
+  const moveFDrag  = (clientY) => { if(!fDrag) return; setVol(fV0 - (clientY-fY0)/track.offsetHeight); };
+  const endFDrag   = () => fDrag=false;
+
+  handle.addEventListener('mousedown',  e => { startFDrag(e.clientY); e.stopPropagation(); });
+  handle.addEventListener('touchstart', e => { startFDrag(e.touches[0].clientY); e.stopPropagation(); }, {passive:true});
+  addEventListener('mousemove',  e => moveFDrag(e.clientY));
+  addEventListener('touchmove',  e => moveFDrag(e.touches[0].clientY), {passive:true});
+  addEventListener('mouseup',    endFDrag);
+  addEventListener('touchend',   endFDrag);
+
+  // Click anywhere on track
+  track.addEventListener('click', e => {
+    if (fDrag) return;
+    const r = track.getBoundingClientRect();
+    setVol(1 - (e.clientY - r.top) / r.height);
+  });
+
+  mBtn.addEventListener('click', () => {
+    stemMuted[i] = !stemMuted[i];
+    mBtn.textContent = stemMuted[i] ? 'OFF' : 'ON';
+    mBtn.classList.toggle('off', stemMuted[i]);
+  });
+
+  col.appendChild(lbl);
+  col.appendChild(track);
+  col.appendChild(mBtn);
+  fadersEl.appendChild(col);
+});
+
+// ── UI wiring ──────────────────────────────────────────────────
+$('bLF').onclick    = () => $('fi').click();
+$('bLMic').onclick  = () => startMic();
+$('fi').onchange    = e => { if (e.target.files[0]) loadFile(e.target.files[0]); };
+
+$('bMF').onclick = () => {
+  $('bMF').classList.add('on'); $('bMM').classList.remove('on');
+  killAll(); LAND.classList.remove('gone');
+};
+$('bMM').onclick = () => {
+  $('bMM').classList.add('on'); $('bMF').classList.remove('on');
+  startMic();
+};
+$('bPl').onclick = () => {
+  if (!buf) return;
+  if (audioCtx?.state === 'suspended') audioCtx.resume();
+  isPlaying ? doPause() : doPlay();
+};
+$('bLN').onclick = () => { doPause(); pauseOff=0; LAND.classList.remove('gone'); };
+$('bMu').onclick = () => {
+  isMuted = !isMuted;
+  if (gainNode) gainNode.gain.setTargetAtTime(isMuted ? 0 : 1, audioCtx.currentTime, 0.05);
+  $('bMu').textContent = isMuted ? 'Unmute' : 'Mute';
+};
+$('bCam').onclick    = () => toggleCam();
+$('bAR').onclick     = () => enterXR();
+$('btn-ar').onclick  = () => enterXR();
+$('pt').onclick      = e => {
+  if (!buf) return;
+  pauseOff = (e.offsetX / e.currentTarget.offsetWidth) * buf.duration;
+  if (isPlaying) doPlay();
+};
+
+addEventListener('dragover', e => e.preventDefault());
+addEventListener('drop', e => {
+  e.preventDefault();
+  const f = e.dataTransfer.files[0];
+  if (f?.type.startsWith('audio/')) loadFile(f);
+});
+
+function fmt(s) {
+  const m  = Math.floor(s / 60);
+  const ss = Math.floor(s % 60);
+  return `${m}:${ss.toString().padStart(2, '0')}`;
+}
+</script>
+</body>
+</html>
