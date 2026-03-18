@@ -28,8 +28,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Co
   pointer-events:all;
 }
 .pills{
-  display:flex;border:1px solid rgba(255,255,255,.12);border-radius:2px;
-  overflow:hidden;backdrop-filter:blur(16px);
+  display:flex;border:1px solid rgba(255,255,255,.12);border-radius:999px;
+  overflow:hidden;backdrop-filter:blur(18px);
+  background:linear-gradient(120deg,rgba(255,255,255,.06),rgba(255,255,255,.015));
+  box-shadow:0 14px 34px rgba(0,0,0,.28), inset 0 0 24px rgba(255,255,255,.03);
 }
 .pill{
   padding:8px 15px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;
@@ -43,7 +45,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Co
   padding:8px 15px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;
   background:rgba(0,0,0,.55);backdrop-filter:blur(16px);
   border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.35);
-  font-family:inherit;cursor:pointer;border-radius:2px;transition:all .15s;
+  font-family:inherit;cursor:pointer;border-radius:999px;transition:all .15s;
 }
 .hbtn:hover,.hbtn.on{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.3)}
 
@@ -59,9 +61,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Co
   opacity:0;transition:opacity .4s;
 }
 #pb.on{opacity:1}
-.pbar{width:100%;height:1px;background:rgba(255,255,255,.1);cursor:pointer;position:relative}
+.pbar{width:100%;height:2px;background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.16),rgba(255,255,255,.08));cursor:pointer;position:relative;border-radius:999px}
 .pbar::before{content:'';position:absolute;inset:-7px 0}
-#pf{height:100%;background:rgba(255,255,255,.5);width:0;transition:width .1s linear}
+#pf{height:100%;background:linear-gradient(90deg,rgba(255,255,255,.45),rgba(255,255,255,.8),rgba(255,255,255,.45));width:0;transition:width .1s linear;border-radius:999px;box-shadow:0 0 18px rgba(255,255,255,.3)}
 .trow{display:flex;justify-content:space-between;font-size:8px;color:rgba(255,255,255,.2);letter-spacing:.1em}
 .ctrls{display:flex;justify-content:center;gap:18px}
 .cbtn{
@@ -80,20 +82,20 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Co
 .fc{display:flex;flex-direction:column;align-items:center;gap:7px;width:42px}
 .fl{font-size:7px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.25);text-align:center}
 .ft{
-  position:relative;height:90px;width:2px;
-  background:rgba(255,255,255,.1);border-radius:1px;cursor:pointer;
+  position:relative;height:90px;width:4px;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));border-radius:999px;cursor:pointer;
 }
-.ff{position:absolute;bottom:0;left:0;right:0;border-radius:1px;transition:height .04s}
+.ff{position:absolute;bottom:0;left:0;right:0;border-radius:999px;transition:height .04s;filter:blur(.2px)}
 .fh{
   position:absolute;left:50%;transform:translate(-50%,-50%);
-  width:22px;height:6px;border-radius:1px;background:rgba(255,255,255,.75);
-  cursor:grab;box-shadow:0 0 8px rgba(255,255,255,.25);
+  width:24px;height:8px;border-radius:999px;background:rgba(255,255,255,.78);
+  cursor:grab;box-shadow:0 0 14px rgba(255,255,255,.25), inset 0 0 8px rgba(255,255,255,.2);
 }
 .fh:active{cursor:grabbing}
 .mb{
   width:32px;height:18px;font-size:7px;letter-spacing:.1em;text-transform:uppercase;
   background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.14);
-  color:rgba(255,255,255,.35);font-family:inherit;cursor:pointer;border-radius:1px;transition:all .15s;
+  color:rgba(255,255,255,.35);font-family:inherit;cursor:pointer;border-radius:999px;transition:all .15s;
 }
 .mb.off{background:rgba(255,50,30,.12);border-color:rgba(255,70,40,.35);color:rgba(255,90,55,.75)}
 .mb:hover{color:#fff;border-color:rgba(255,255,255,.3)}
@@ -115,7 +117,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Co
 .lbg{display:flex;flex-direction:column;gap:7px;width:min(270px,78vw)}
 .lbtn{
   padding:13px 18px;display:flex;justify-content:space-between;align-items:center;
-  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.1);background:linear-gradient(120deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
   color:rgba(255,255,255,.6);font-family:inherit;font-size:9px;letter-spacing:.15em;
   text-transform:uppercase;cursor:pointer;transition:all .15s;
 }
@@ -123,7 +125,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Co
 .lbtn span{opacity:.35;font-size:15px}
 #btn-ar{
   padding:11px 28px;border:1px solid rgba(255,255,255,.25);
-  background:rgba(255,255,255,.05);color:rgba(255,255,255,.8);
+  background:linear-gradient(140deg,rgba(255,255,255,.1),rgba(255,255,255,.02));color:rgba(255,255,255,.8);
   font-family:inherit;font-size:9px;letter-spacing:.22em;text-transform:uppercase;
   cursor:pointer;transition:all .15s;display:none;
 }
@@ -213,20 +215,30 @@ float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<4;i++){v+=a*sn(p);p*=2.1;a*=.48;
 
 const VERT = `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
 
+const SOFT_EDGE = `
+float softFieldMask(vec2 uv, float t){
+  float edge = smoothstep(1.26, .52, length(uv * vec2(.9, 1.1)));
+  float organic = smoothstep(.2, .95, fbm(uv*2.5 + vec2(cos(t*.17), sin(t*.13))*1.5));
+  return clamp(edge * (0.74 + organic * 0.32), 0., 1.);
+}
+`;
+
 // ── DRUMS — pulsing radial burst · no hard edges · warm ember field ──
-const FRAG_DRUMS = NOISE + `
+const FRAG_DRUMS = NOISE + SOFT_EDGE + `
 uniform float uE,uT,uV;varying vec2 vUv;
 void main(){
   vec2 uv=vUv*2.-1.;
   float f=fbm(uv*2.2+uT*.17+uE*.35);
   float g=fbm(uv*4.8+vec2(-uT*.22,uT*.14));
+  uv += vec2(sin(uT*.22+uv.y*2.3), cos(uT*.27+uv.x*2.8)) * (.06 + uE*.08);
   float d=length(uv)+(f-.5)*.6*(uE*.9+.25)+(g-.5)*.22;
   // multiple soft halos, not rings—just gradient bands
   float h1=exp(-pow(max(0.,d-.3*(1.+uE*.9)),2.)*18.)*.9;
   float h2=exp(-pow(max(0.,d-.58*(1.+uE*.5)),2.)*9.)*.55;
   float h3=exp(-pow(max(0.,d-.82),2.)*5.)*.3;
   float core=exp(-d*d*5.)*(uE*.8+.12);
-  float bright=(h1+h2+h3+core)*uV;
+  float mask = softFieldMask(uv, uT);
+  float bright=(h1+h2+h3+core)*uV*mask;
   vec3 c=mix(vec3(.6,.04,.01),vec3(1.,.3,.03),clamp(bright*1.1,0.,1.));
   c=mix(c,vec3(1.,.75,.25),clamp(bright*2.2-1.,0.,1.));
   c=mix(c,vec3(1.,.97,.88),clamp(bright*4.-2.8,0.,1.));
@@ -234,7 +246,7 @@ void main(){
 }`;
 
 // ── BASS — slow heavy amoeba · deep blue morphing field ──
-const FRAG_BASS = NOISE + `
+const FRAG_BASS = NOISE + SOFT_EDGE + `
 uniform float uE,uT,uV;varying vec2 vUv;
 void main(){
   vec2 uv=vUv*2.-1.;
@@ -242,10 +254,12 @@ void main(){
   float f =fbm(uv*1.6+uT*.07+uE*.18);
   float g =fbm(uv*3.2-uT*.11);
   float f2=fbm(uv*5.5+vec2(uT*.19,-uT*.08));
+  uv += vec2(cos(uT*.16+uv.y*3.1), sin(uT*.2+uv.x*2.4)) * (.07 + uE*.09);
   float d=length(uv)+(f-.5)*.72*(uE*.85+.35)+(g-.5)*.28+(f2-.5)*.1;
   float blob=exp(-d*d*2.8)*(uE*.7+.18);
   float halo=exp(-d*d*.7)*(uE*.4+.08);
-  float bright=(blob+halo)*uV;
+  float mask = softFieldMask(uv, uT + 3.14);
+  float bright=(blob+halo)*uV*mask;
   float colorF=fbm(uv*2.+uT*.05);
   vec3 c=mix(vec3(.02,.07,.4),vec3(.08,.38,.88),clamp(colorF*1.4,0.,1.));
   c=mix(c,vec3(.25,.75,.98),clamp(bright*2.5-1.,0.,1.));
@@ -254,11 +268,13 @@ void main(){
 }`;
 
 // ── MID — horizontal aurora river · flowing teal light bands ──
-const FRAG_MID = NOISE + `
+const FRAG_MID = NOISE + SOFT_EDGE + `
 uniform float uE,uT,uV;varying vec2 vUv;
 void main(){
   vec2 uv=vUv*2.-1.;
   uv.x*=.48; // very wide, shallow
+  uv.y += sin(uT*.58 + uv.x*4.2)*(.12 + uE*.18);
+  uv.x += cos(uT*.26 + uv.y*3.2)*(.05 + uE*.08);
   float warp=fbm(vec2(uv.x*2.8+uT*.18, uv.y*4.+uT*.28))*(uE*.55+.12);
   float w2  =fbm(vec2(uv.x*5.5-uT*.22, uv.y*7.-uT*.4))*.1;
   float dy=abs(uv.y - (warp-.25)*.5 + w2);
@@ -267,7 +283,8 @@ void main(){
   float a2=exp(-pow(abs(uv.y+(warp-.5)*.3),2.)*10.)*(uE*.45+.1);
   float a3=exp(-pow(abs(uv.y-.15+(w2-.05)),2.)*30.)*(uE*.3);
   float ex=smoothstep(1.,.55,abs(uv.x));
-  float bright=(a1+a2+a3)*ex*uV;
+  float mask = softFieldMask(uv, uT + 1.7);
+  float bright=(a1+a2+a3)*ex*uV*mask;
   float nf=fbm(vec2(uv.x*3.+uT*.12,uv.y*2.-uT*.2));
   vec3 c=mix(vec3(0.,.22,.2),vec3(0.,.8,.55),clamp(nf*1.6,0.,1.));
   c=mix(c,vec3(.4,1.,.78),clamp(bright*2.-1.,0.,1.));
@@ -276,11 +293,12 @@ void main(){
 }`;
 
 // ── HIGH — dispersing golden nebula · soft vertical shimmer ──
-const FRAG_HIGH = NOISE + `
+const FRAG_HIGH = NOISE + SOFT_EDGE + `
 uniform float uE,uT,uV;varying vec2 vUv;
 void main(){
   vec2 uv=vUv*2.-1.;
   uv.y*=.52; // taller feel
+  uv += vec2(sin(uT*.24+uv.y*2.1), cos(uT*.31+uv.x*2.7))*(.05+uE*.1);
   float total=0.;
   // layered noise pockets creating soft scattered glow—no hard shapes
   for(int i=0;i<6;i++){
@@ -292,7 +310,7 @@ void main(){
   }
   float core=exp(-length(uv*vec2(.8,1.2))*length(uv*vec2(.8,1.2))*2.8)*(uE*.6+.1);
   total+=core;
-  total*=uV;
+  total*=uV*softFieldMask(uv, uT + 2.4);
   float nf=fbm(uv*3.+uT*.06);
   vec3 c=mix(vec3(.45,.18,.0),vec3(1.,.62,.02),clamp(nf*1.5,0.,1.));
   c=mix(c,vec3(1.,.9,.3),clamp(total*2.2-1.,0.,1.));
@@ -303,16 +321,17 @@ void main(){
 // ── Stem configuration ─────────────────────────────────────────
 // positions are wide apart; in XR they surround the user
 const STEMS = [
-  { name:'DRUMS', hex:'#FF4D1C', frag:FRAG_DRUMS, pos:[-2.8, 0.0, -3.2], sz:[3.6,3.6], flo:20,   fhi:250   },
-  { name:'BASS',  hex:'#4D79FF', frag:FRAG_BASS,  pos:[-0.9,-0.2, -4.0], sz:[3.0,3.8], flo:250,  fhi:500   },
-  { name:'MID',   hex:'#00E5A0', frag:FRAG_MID,   pos:[ 0.9, 0.2, -3.7], sz:[4.8,2.6], flo:500,  fhi:4000  },
-  { name:'HIGH',  hex:'#FFD600', frag:FRAG_HIGH,  pos:[ 2.8, 0.4, -3.2], sz:[3.2,4.2], flo:4000, fhi:20000 },
+  { name:'DRUMS', hex:'#FF4D1C', frag:FRAG_DRUMS, pos:[-2.35, 0.05, -3.2], sz:[4.0,3.9], flo:20,   fhi:250   },
+  { name:'BASS',  hex:'#4D79FF', frag:FRAG_BASS,  pos:[-0.85,-0.22, -3.9], sz:[3.6,4.2], flo:250,  fhi:500   },
+  { name:'MID',   hex:'#00E5A0', frag:FRAG_MID,   pos:[ 0.95, 0.16, -3.65], sz:[5.2,3.1], flo:500,  fhi:4000  },
+  { name:'HIGH',  hex:'#FFD600', frag:FRAG_HIGH,  pos:[ 2.3, 0.34, -3.15], sz:[3.8,4.6], flo:4000, fhi:20000 },
 ];
 
 const stemGroups    = [];
 const stemUniforms  = [];
 const stemVols      = [1,1,1,1];
 const stemMuted     = [false,false,false,false];
+const stemVisualVols = [1,1,1,1];
 
 STEMS.forEach((s, i) => {
   const u = { uE:{value:0}, uT:{value:0}, uV:{value:1} };
@@ -556,17 +575,25 @@ renderer.setAnimationLoop((timeMs) => {
   }
 
   STEMS.forEach((s, i) => {
-    const vol = stemMuted[i] ? 0 : stemVols[i];
+    const targetVol = stemMuted[i] ? 0 : stemVols[i];
     const u   = stemUniforms[i];
     const e   = smoothE[i];
 
+    // Audio-synced transition: stem visibility shifts on the currently active band energy.
+    const syncRate = 0.08 + e * 0.24;
+    stemVisualVols[i] += (targetVol - stemVisualVols[i]) * syncRate;
+
     u.uE.value = e;
     u.uT.value = clock;
-    u.uV.value = vol;
+    u.uV.value = stemVisualVols[i];
 
-    // Gentle breathing scale driven by energy
-    const pulse = 1 + e * 0.4;
+    // Gentle breathing + multidirectional drift driven by energy.
+    const pulse = 1 + e * 0.34;
+    const bobY = Math.sin(clock * (0.42 + i * 0.07) + i * 1.2) * (0.08 + e * 0.22);
+    const swayX = Math.cos(clock * (0.3 + i * 0.05) + i) * (0.05 + e * 0.12);
     stemGroups[i].scale.set(pulse, pulse, 1);
+    stemGroups[i].position.x = s.pos[0] + swayX;
+    stemGroups[i].position.y = s.pos[1] + bobY;
 
     // In non-XR, face camera; in XR the user looks around naturally
     if (!renderer.xr.isPresenting) {
@@ -600,6 +627,7 @@ STEMS.forEach((s, i) => {
 
   const setVol = v => {
     stemVols[i] = Math.max(0, Math.min(1, v));
+    if (!isPlaying) stemVisualVols[i] = stemVols[i];
     fill.style.height   = (stemVols[i] * 100) + '%';
     handle.style.top    = ((1 - stemVols[i]) * 100) + '%';
   };
