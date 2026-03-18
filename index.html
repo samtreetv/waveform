@@ -169,6 +169,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Co
   <div class="lbg">
     <button class="lbtn" id="bLF">Load audio file <span>◎</span></button>
     <button class="lbtn" id="bLMic">Live microphone <span>⊙</span></button>
+    <button class="lbtn" id="bMemento">Memento Mori <span>✢</span></button>
   </div>
   <button id="btn-ar">◈ Enter AR Space</button>
   <input type="file" id="fi" accept="audio/*">
@@ -679,6 +680,7 @@ STEMS.forEach((s, i) => {
 // ── UI wiring ──────────────────────────────────────────────────
 $('bLF').onclick    = () => $('fi').click();
 $('bLMic').onclick  = () => startMic();
+$('bMemento').onclick = () => { location.href = 'bg.html'; };
 $('fi').onchange    = e => { if (e.target.files[0]) loadFile(e.target.files[0]); };
 
 $('bMF').onclick = () => {
