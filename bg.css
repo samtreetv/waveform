@@ -46,7 +46,7 @@ body {
 }
 
 body {
-    // padding: 20px;
+    /* padding: 20px; */
 }
 
 /* ============ TYPOGRAPHY ============ */
@@ -68,7 +68,7 @@ body {
 @media (max-width: 768px) {
     .heading {
         font-size: 2em;
-        // margin-bottom: 0.3em;
+        /* margin-bottom: 0.3em; */
     }
 
     .text {
@@ -194,16 +194,14 @@ body {
     /*border: var(--border-secondary);*/
     border-radius: 500px;
     cursor: pointer;
+}
 
-    &:hover {
-        svg {
-            transform: scale(1.15);
-        }
-    }
+.icon-wrap:hover svg {
+    transform: scale(1.15);
+}
 
-    svg {
-        transition: var(--transition-secondary);
-    }
+.icon-wrap svg {
+    transition: var(--transition-secondary);
 }
 
 .icon-temporary {
@@ -221,10 +219,10 @@ body {
     transform: translate(-50%, -50%);
     text-align: center;
     pointer-events: none;
+}
 
-    &:hover {
-        transform: unset;
-    }
+.icon-wrap.icon-info:hover {
+    transform: unset;
 }
 
 @media (max-width: 768px) {
@@ -239,7 +237,7 @@ body {
     }
 }
 
-// Close button: hidden by default
+/* Close button: hidden by default */
 .icon-close {
     position: fixed;
     top: 20px;
@@ -250,13 +248,13 @@ body {
     transition: opacity 0.3s ease;
 }
 
-// When .canvas-wrap enters fullscreen
+/* When .canvas-wrap enters fullscreen */
 .canvas-wrap.is-fullscreen .icon-close {
     display: flex;
     opacity: 1;
 }
 
-// Hide the rest of the UI in fullscreen
+/* Hide the rest of the UI in fullscreen */
 .canvas-wrap.is-fullscreen .icons-container,
 .canvas-wrap.is-fullscreen .navigation-container {
     display: none !important;
@@ -264,7 +262,7 @@ body {
 
 /* ============ CANVAS ============ */
 .canvas-wrap {
-    // border: var(--border-primary);
+    /* border: var(--border-primary); */
     box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;
     border-radius: var(--border-radius-large);
     width: fit-content;
@@ -635,7 +633,7 @@ body {
     max-height: 95dvh;
 }
 
-// Hide color picker field
+/* Hide color picker field */
 .tp-colpv_rgb {
     display: none !important;
 }
